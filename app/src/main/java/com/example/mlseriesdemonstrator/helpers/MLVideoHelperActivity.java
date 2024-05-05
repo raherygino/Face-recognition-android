@@ -46,7 +46,7 @@ public abstract class MLVideoHelperActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA = 1001;
     protected PreviewView previewView;
     protected GraphicOverlay graphicOverlay;
-    private TextView outputTextView;
+    private TextView outputTextView, textPreview;
     private ExtendedFloatingActionButton addFaceButton;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private Executor executor = Executors.newSingleThreadExecutor();
@@ -62,6 +62,7 @@ public abstract class MLVideoHelperActivity extends AppCompatActivity {
         previewView = findViewById(R.id.camera_source_preview);
         graphicOverlay = findViewById(R.id.graphic_overlay);
         outputTextView = findViewById(R.id.output_text_view);
+        textPreview = findViewById(R.id.textPreview);
         addFaceButton = findViewById(R.id.button_add_face);
 
         cameraProviderFuture = ProcessCameraProvider.getInstance(getApplicationContext());
@@ -73,6 +74,10 @@ public abstract class MLVideoHelperActivity extends AppCompatActivity {
         } else {
             initSource();
         }
+    }
+
+    public void setTextPreview(String text) {
+        this.textPreview.setText(text);
     }
 
     @Override

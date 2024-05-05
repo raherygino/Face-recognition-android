@@ -1,5 +1,7 @@
 package com.example.mlseriesdemonstrator.object;
 
+import android.app.Activity;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -22,7 +24,8 @@ import org.tensorflow.lite.support.common.FileUtil;
 
 import java.io.IOException;
 
-public class FaceRecognitionActivity extends MLVideoHelperActivity implements FaceRecognitionProcessor.FaceRecognitionCallback {
+public class FaceRecognitionActivity extends MLVideoHelperActivity implements FaceRecognitionProcessor.FaceRecognitionCallback
+{
 
     private Interpreter faceNetInterpreter;
     private FaceRecognitionProcessor faceRecognitionProcessor;
@@ -46,6 +49,7 @@ public class FaceRecognitionActivity extends MLVideoHelperActivity implements Fa
         }
 
         faceRecognitionProcessor = new FaceRecognitionProcessor(
+                (Activity) this,
                 faceNetInterpreter,
                 graphicOverlay,
                 this

@@ -1,17 +1,22 @@
 package com.example.mlseriesdemonstrator.helpers.vision.recogniser;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageProxy;
 
+import com.example.mlseriesdemonstrator.database.DBHelper;
+import com.example.mlseriesdemonstrator.helpers.ImageLoader;
 import com.example.mlseriesdemonstrator.helpers.vision.FaceGraphic;
 import com.example.mlseriesdemonstrator.helpers.vision.GraphicOverlay;
 import com.example.mlseriesdemonstrator.helpers.vision.VisionBaseProcessor;
@@ -36,9 +41,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.example.mlseriesdemonstrator.database.Person;
+
 public class FaceRecognitionProcessor extends VisionBaseProcessor<List<Face>> {
 
-    class Person {
+    /*class Person {
         public String name;
         public float[] faceVector;
 
@@ -46,7 +53,8 @@ public class FaceRecognitionProcessor extends VisionBaseProcessor<List<Face>> {
             this.name = name;
             this.faceVector = faceVector;
         }
-    }
+    }*/
+    DBHelper dbHelper;
 
     public interface FaceRecognitionCallback {
         void onFaceRecognised(Face face, float probability, String name);
@@ -64,15 +72,17 @@ public class FaceRecognitionProcessor extends VisionBaseProcessor<List<Face>> {
     private final GraphicOverlay graphicOverlay;
     private final FaceRecognitionCallback callback;
 
-    public FaceRecognitionActivity activity;
+    public Activity activity;
 
-    List<Person> recognisedFaceList = new ArrayList();
+    private List<Person> recognisedFaceList = new ArrayList();
 
-    public FaceRecognitionProcessor(Interpreter faceNetModelInterpreter,
+    public FaceRecognitionProcessor(Context context, Interpreter faceNetModelInterpreter,
                                     GraphicOverlay graphicOverlay,
                                     FaceRecognitionCallback callback) {
         this.callback = callback;
         this.graphicOverlay = graphicOverlay;
+        this.dbHelper = new DBHelper(context);
+        this.recognisedFaceList = this.dbHelper.getAllPersons();
         // initialize processors
         this.faceNetModelInterpreter = faceNetModelInterpreter;
         faceNetImageProcessor = new ImageProcessor.Builder()
@@ -125,13 +135,17 @@ public class FaceRecognitionProcessor extends VisionBaseProcessor<List<Face>> {
                                 Log.d("GraphicOverlay", "Face bitmap null");
                                 return;
                             }
-
+                            Bitmap bitmap = ImageLoader.loadImageFromAssets(activity, "2723.jpg");
                             TensorImage tensorImage = TensorImage.fromBitmap(faceBitmap);
                             ByteBuffer faceNetByteBuffer = faceNetImageProcessor.process(tensorImage).getBuffer();
                             float[][] faceOutputArray = new float[1][192];
+                            //Toast.makeText(activity, ""+Arrays.deepToString(faceOutputArray), Toast.LENGTH_SHORT).show();
                             faceNetModelInterpreter.run(faceNetByteBuffer, faceOutputArray);
 
                             Log.d(TAG, "output array: " + Arrays.deepToString(faceOutputArray));
+                            /*HomeActivity h = (HomeActivity) activity;
+                            h.setTextPreview(Arrays.deepToString(faceOutputArray));*/
+                            //Toast.makeText(activity, ""+Arrays.deepToString(faceOutputArray), Toast.LENGTH_SHORT).show();
 
                             if (callback != null) {
                                 callback.onFaceDetected(face, faceBitmap, faceOutputArray[0]);
@@ -209,5 +223,10 @@ public class FaceRecognitionProcessor extends VisionBaseProcessor<List<Face>> {
     // Register a name against the vector
     public void registerFace(Editable input, float[] tempVector) {
         recognisedFaceList.add(new Person(input.toString(), tempVector));
+        String nFace = "";
+        for (int i = 0; i < tempVector.length; i++) {
+            nFace += tempVector[i]+";";
+        }
+        dbHelper.insertData(input.toString(), nFace);
     }
 }
